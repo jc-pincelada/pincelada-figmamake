@@ -153,7 +153,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
+    <div className="min-h-screen bg-[#F5F0A0]">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="max-w-[700px] mx-auto px-6 md:px-12 py-6">
@@ -164,7 +164,7 @@ export default function App() {
             >
               Calorie Tracker
             </h1>
-            <Flame className="w-8 h-8 text-[#7C3AED]" />
+            <Flame className="w-8 h-8 text-[#4E5D8A]" />
           </div>
 
           {/* Date navigation */}
@@ -172,7 +172,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
-                className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors"
+                className="p-1 text-gray-400 hover:text-[#4E5D8A] transition-colors"
                 aria-label="Previous day"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -189,7 +189,7 @@ export default function App() {
                   if (next <= getTodayKey()) setSelectedDate(next);
                 }}
                 disabled={isToday}
-                className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1 text-gray-400 hover:text-[#4E5D8A] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 aria-label="Next day"
               >
                 <ChevronRight className="w-5 h-5" />
@@ -197,7 +197,7 @@ export default function App() {
               {!isToday && (
                 <button
                   onClick={() => setSelectedDate(getTodayKey())}
-                  className="ml-1 text-[12px] text-[#7C3AED] hover:underline"
+                  className="ml-1 text-[12px] text-[#4E5D8A] hover:underline"
                   style={{ fontFamily: 'DM Sans' }}
                 >
                   Back to today
@@ -206,7 +206,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setShowCalendar(!showCalendar)}
-              className={`flex items-center gap-1 text-[12px] transition-colors ${showCalendar ? 'text-[#7C3AED]' : 'text-gray-400 hover:text-[#7C3AED]'}`}
+              className={`flex items-center gap-1 text-[12px] transition-colors ${showCalendar ? 'text-[#4E5D8A]' : 'text-gray-400 hover:text-[#4E5D8A]'}`}
               style={{ fontFamily: 'DM Sans' }}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -246,12 +246,12 @@ export default function App() {
                   type="number"
                   value={goal}
                   onChange={e => setGoal(Number(e.target.value))}
-                  className="w-20 px-2 py-1 text-[14px] border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none"
+                  className="w-20 px-2 py-1 text-[14px] border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none"
                   style={{ fontFamily: 'DM Sans' }}
                 />
                 <button
                   onClick={() => setEditingGoal(false)}
-                  className="text-[12px] text-[#7C3AED] hover:underline"
+                  className="text-[12px] text-[#4E5D8A] hover:underline"
                   style={{ fontFamily: 'DM Sans' }}
                 >
                   Done
@@ -260,7 +260,7 @@ export default function App() {
             ) : (
               <button
                 onClick={() => setEditingGoal(true)}
-                className="text-[12px] text-gray-400 hover:text-[#7C3AED] transition-colors"
+                className="text-[12px] text-gray-400 hover:text-[#4E5D8A] transition-colors"
                 style={{ fontFamily: 'DM Sans' }}
               >
                 Goal: {goal} kcal
@@ -271,7 +271,7 @@ export default function App() {
           {/* Progress bar */}
           <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-4">
             <div
-              className={`h-full rounded-full transition-all duration-500 ${overBudget ? 'bg-[#DC2626]' : 'bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6]'}`}
+              className={`h-full rounded-full transition-all duration-500 ${overBudget ? 'bg-[#DC2626]' : 'bg-gradient-to-br from-[#4E5D8A] via-[#6B9BD2] to-[#9EC55A]'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -356,7 +356,7 @@ export default function App() {
                   value={name}
                   onChange={e => setName(e.target.value)}
                   placeholder="e.g. Grilled chicken breast"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors"
                   style={{ fontFamily: 'DM Sans' }}
                 />
               </div>
@@ -370,7 +370,7 @@ export default function App() {
                   onChange={e => setCalories(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors"
                   style={{ fontFamily: 'DM Sans' }}
                 />
               </div>
@@ -384,7 +384,7 @@ export default function App() {
                   onChange={e => setProtein(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors"
                   style={{ fontFamily: 'DM Sans' }}
                 />
               </div>
@@ -398,7 +398,7 @@ export default function App() {
                   onChange={e => setCarbs(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors"
                   style={{ fontFamily: 'DM Sans' }}
                 />
               </div>
@@ -412,14 +412,14 @@ export default function App() {
                   onChange={e => setFat(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors"
                   style={{ fontFamily: 'DM Sans' }}
                 />
               </div>
             </div>
             <button
               type="submit"
-              className="w-full px-8 py-3 bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+              className="w-full px-8 py-3 bg-gradient-to-br from-[#4E5D8A] via-[#6B9BD2] to-[#9EC55A] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
               style={{ fontFamily: 'DM Sans' }}
             >
               <Plus className="w-5 h-5" />
@@ -471,7 +471,7 @@ function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove?: () => 
           {hasIngredients && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="text-gray-400 hover:text-[#7C3AED] transition-colors shrink-0"
+              className="text-gray-400 hover:text-[#4E5D8A] transition-colors shrink-0"
               aria-label={expanded ? 'Collapse ingredients' : 'Expand ingredients'}
             >
               {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -518,7 +518,7 @@ function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove?: () => 
       {/* Expanded ingredients */}
       {expanded && hasIngredients && (
         <div className="px-4 pb-4 pt-0">
-          <div className="bg-[#FAF9F6] rounded-lg p-3 space-y-2">
+          <div className="bg-[#F5F0A0] rounded-lg p-3 space-y-2">
             {entry.ingredients!.map((ing, i) => (
               <div key={i} className="flex items-center justify-between text-[13px]" style={{ fontFamily: 'DM Sans' }}>
                 <span className="text-gray-600">{ing.name}</span>
