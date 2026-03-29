@@ -186,7 +186,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
     <div className="space-y-4">
       {/* API Key Section */}
       {showKeyInput ? (
-        <div className="p-4 bg-[#F5F0A0] rounded-lg border border-gray-200">
+        <div className="p-4 bg-[#F2D8B0] rounded-lg border border-gray-200">
           <label className="block text-[14px] text-gray-600 mb-1" style={{ fontFamily: 'DM Sans' }}>
             Anthropic API Key
           </label>
@@ -199,12 +199,12 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
               value={apiKey}
               onChange={e => setApiKey(e.target.value)}
               placeholder="sk-ant-..."
-              className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-[#4E5D8A] focus:outline-none transition-colors text-[14px]"
+              className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-[#5D5278] focus:outline-none transition-colors text-[14px]"
               style={{ fontFamily: 'DM Sans' }}
             />
             <button
               onClick={saveApiKey}
-              className="px-4 py-2 bg-gradient-to-br from-[#4E5D8A] via-[#6B9BD2] to-[#9EC55A] text-white rounded-full text-[14px] hover:opacity-90 transition-opacity"
+              className="px-4 py-2 bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white rounded-full text-[14px] hover:opacity-90 transition-opacity"
               style={{ fontFamily: 'DM Sans' }}
             >
               Save
@@ -217,7 +217,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-full text-[14px] text-gray-600 hover:border-[#4E5D8A] hover:text-[#4E5D8A] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-full text-[14px] text-gray-600 hover:border-[#5D5278] hover:text-[#5D5278] transition-colors"
               style={{ fontFamily: 'DM Sans' }}
             >
               <Upload className="w-4 h-4" />
@@ -226,7 +226,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
             <button
               type="button"
               onClick={() => cameraInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-full text-[14px] text-gray-600 hover:border-[#4E5D8A] hover:text-[#4E5D8A] transition-colors"
+              className="flex items-center gap-2 px-4 py-2 border-2 border-gray-200 rounded-full text-[14px] text-gray-600 hover:border-[#5D5278] hover:text-[#5D5278] transition-colors"
               style={{ fontFamily: 'DM Sans' }}
             >
               <Camera className="w-4 h-4" />
@@ -235,7 +235,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
           </div>
           <button
             onClick={() => setShowKeyInput(true)}
-            className="text-[12px] text-gray-400 hover:text-[#4E5D8A] transition-colors"
+            className="text-[12px] text-gray-400 hover:text-[#5D5278] transition-colors"
             style={{ fontFamily: 'DM Sans' }}
           >
             Change API key
@@ -278,7 +278,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
           <button
             onClick={analyzePhoto}
             disabled={analyzing}
-            className="mt-3 w-full px-8 py-3 bg-gradient-to-br from-[#4E5D8A] via-[#6B9BD2] to-[#9EC55A] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
+            className="mt-3 w-full px-8 py-3 bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: 'DM Sans' }}
           >
             {analyzing ? (
@@ -350,7 +350,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
 
           {/* Totals */}
           {totals && (
-            <div className="flex items-center justify-between px-3 py-2 bg-[#F5F0A0] rounded-lg">
+            <div className="flex items-center justify-between px-3 py-2 bg-[#F2D8B0] rounded-lg">
               <span className="text-[14px] font-medium text-[#1A1A1A]" style={{ fontFamily: 'DM Sans' }}>
                 Total
               </span>
@@ -366,7 +366,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
           {/* Confirm button */}
           <button
             onClick={confirmIngredients}
-            className="w-full px-8 py-3 bg-gradient-to-br from-[#4E5D8A] via-[#6B9BD2] to-[#9EC55A] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            className="w-full px-8 py-3 bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
             style={{ fontFamily: 'DM Sans' }}
           >
             <Check className="w-5 h-5" />
@@ -428,7 +428,7 @@ function IngredientRow({
               autoFocus
               min="0"
               step={ingredient.unit === 'pc' ? '1' : 'any'}
-              className="w-16 px-2 py-1 text-[14px] text-right border-2 border-[#4E5D8A] rounded-lg focus:outline-none"
+              className="w-16 px-2 py-1 text-[14px] text-right border-2 border-[#5D5278] rounded-lg focus:outline-none"
               style={{ fontFamily: 'DM Sans' }}
             />
             <span className="text-[13px] text-gray-400 w-5" style={{ fontFamily: 'DM Sans' }}>
@@ -446,7 +446,7 @@ function IngredientRow({
             <span className="text-[13px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
               {ingredient.unit}
             </span>
-            <Pencil className="w-3 h-3 text-gray-300 group-hover:text-[#4E5D8A] transition-colors" />
+            <Pencil className="w-3 h-3 text-gray-300 group-hover:text-[#5D5278] transition-colors" />
           </button>
         )}
 

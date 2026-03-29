@@ -158,7 +158,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-[#4E5D8A]" />
+          <TrendingUp className="w-4 h-4 text-[#5D5278]" />
           <div
             className="text-[11px] uppercase tracking-[0.15em] text-gray-500"
             style={{ fontFamily: 'DM Sans' }}
@@ -280,7 +280,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
             />
             <ReferenceLine
               y={avg}
-              stroke="#4E5D8A"
+              stroke="#5D5278"
               strokeDasharray="4 4"
               strokeOpacity={0.4}
               label={{
@@ -288,7 +288,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
                 position: 'left',
                 fontSize: 10,
                 fontFamily: 'DM Sans',
-                fill: '#4E5D8A',
+                fill: '#5D5278',
               }}
             />
             <Bar dataKey="calories" radius={[4, 4, 0, 0]} maxBarSize={range === '1w' ? 48 : 24}>
@@ -300,14 +300,14 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
                       ? '#f3f4f6'
                       : entry.calories > goal
                         ? 'rgba(220, 38, 38, 0.6)'
-                        : 'rgba(78, 93, 138, 0.6)'
+                        : 'rgba(93, 82, 120, 0.6)'
                   }
                   stroke={
                     !entry.hasData
                       ? 'transparent'
                       : entry.calories > goal
                         ? 'rgba(220, 38, 38, 0.8)'
-                        : 'rgba(78, 93, 138, 0.8)'
+                        : 'rgba(93, 82, 120, 0.8)'
                   }
                   strokeWidth={1}
                 />
@@ -320,7 +320,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'rgba(78, 93, 138, 0.6)' }} />
+          <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'rgba(93, 82, 120, 0.6)' }} />
           <span className="text-[11px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>Under goal</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -332,7 +332,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
           <span className="text-[11px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>Goal</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-6 border-t-2 border-dashed border-[#4E5D8A]/40" />
+          <span className="w-6 border-t-2 border-dashed border-[#5D5278]/40" />
           <span className="text-[11px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>Average</span>
         </div>
       </div>
