@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Flame, Apple, Beef, Droplets } from 'lucide-react';
+import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
 
 interface FoodEntry {
   id: string;
@@ -170,6 +171,29 @@ export default function App() {
           >
             Add Food
           </div>
+
+          {/* AI Photo Analysis */}
+          <FoodPhotoAnalyzer
+            onResult={(result) => {
+              setName(result.name);
+              setCalories(String(result.calories));
+              setProtein(String(result.protein));
+              setCarbs(String(result.carbs));
+              setFat(String(result.fat));
+            }}
+          />
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-3 text-[12px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
+                or enter manually
+              </span>
+            </div>
+          </div>
+
           <form onSubmit={addEntry} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
