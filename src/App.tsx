@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
 import type { Ingredient } from './components/FoodPhotoAnalyzer';
+import CalendarPicker from './components/CalendarPicker';
 
 interface FoodEntry {
   id: string;
@@ -73,12 +74,6 @@ function loadDay(allData: AllData, dateKey: string): DayData {
   return allData.days[dateKey] || { entries: [], goal: allData.goal };
 }
 
-function getSortedDates(allData: AllData): string[] {
-  return Object.keys(allData.days)
-    .filter(k => allData.days[k].entries.length > 0)
-    .sort()
-    .reverse();
-}
 
 export default function App() {
   const [allData, setAllData] = useState<AllData>(loadAll);
@@ -89,7 +84,7 @@ export default function App() {
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
   const [editingGoal, setEditingGoal] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const isToday = selectedDate === getTodayKey();
   const dayData = loadDay(allData, selectedDate);
@@ -156,8 +151,6 @@ export default function App() {
     setEntries(prev => prev.filter(e => e.id !== id));
   }
 
-  const historyDates = getSortedDates(allData);
-
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
       {/* Header */}
@@ -210,65 +203,30 @@ export default function App() {
                 </button>
               )}
             </div>
-            {historyDates.length > 0 && (
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="flex items-center gap-1 text-[12px] text-gray-400 hover:text-[#7C3AED] transition-colors"
-                style={{ fontFamily: 'DM Sans' }}
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                History
-              </button>
-            )}
+            <button
+              onClick={() => setShowCalendar(!showCalendar)}
+              className={`flex items-center gap-1 text-[12px] transition-colors ${showCalendar ? 'text-[#7C3AED]' : 'text-gray-400 hover:text-[#7C3AED]'}`}
+              style={{ fontFamily: 'DM Sans' }}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Calendar
+            </button>
           </div>
         </div>
       </header>
 
-      {/* History dropdown */}
-      {showHistory && (
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-[700px] mx-auto px-6 md:px-12 py-4">
-            <div
-              className="text-[11px] uppercase tracking-[0.15em] text-gray-500 mb-3"
-              style={{ fontFamily: 'DM Sans' }}
-            >
-              Previous Days
-            </div>
-            {historyDates.length === 0 ? (
-              <p className="text-[14px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
-                No history yet.
-              </p>
-            ) : (
-              <div className="space-y-1">
-                {historyDates.map(dateKey => {
-                  const day = allData.days[dateKey];
-                  const dayCals = day.entries.reduce((s, e) => s + e.calories, 0);
-                  const isSelected = dateKey === selectedDate;
-                  const over = dayCals > allData.goal;
-                  return (
-                    <button
-                      key={dateKey}
-                      onClick={() => { setSelectedDate(dateKey); setShowHistory(false); }}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left ${isSelected ? 'bg-[#FAF9F6] border border-[#7C3AED]/20' : 'hover:bg-[#FAF9F6]'}`}
-                    >
-                      <div>
-                        <div className="text-[14px] text-[#1A1A1A] font-medium" style={{ fontFamily: 'DM Sans' }}>
-                          {formatDateLabel(dateKey)}
-                        </div>
-                        <div className="text-[12px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
-                          {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'}
-                        </div>
-                      </div>
-                      <div className={`text-[16px] font-medium ${over ? 'text-[#DC2626]' : 'text-[#1A1A1A]'}`} style={{ fontFamily: 'DM Sans' }}>
-                        {dayCals} <span className="text-[12px] text-gray-400 font-normal">kcal</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Calendar picker */}
+      {showCalendar && (
+        <CalendarPicker
+          selectedDate={selectedDate}
+          datesWithData={new Set(Object.keys(allData.days).filter(k => allData.days[k].entries.length > 0))}
+          caloriesByDate={Object.fromEntries(
+            Object.entries(allData.days).map(([k, v]) => [k, v.entries.reduce((s, e) => s + e.calories, 0)])
+          )}
+          goal={allData.goal}
+          onSelectDate={setSelectedDate}
+          onClose={() => setShowCalendar(false)}
+        />
       )}
 
       <main className="max-w-[700px] mx-auto px-6 md:px-12 py-8 space-y-8">
