@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2, Flame, Apple, Beef, Droplets } from 'lucide-react';
+import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp } from 'lucide-react';
 import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
+import type { Ingredient } from './components/FoodPhotoAnalyzer';
 
 interface FoodEntry {
   id: string;
@@ -9,6 +10,7 @@ interface FoodEntry {
   protein: number;
   carbs: number;
   fat: number;
+  ingredients?: Ingredient[];
 }
 
 const DEFAULT_GOAL = 2000;
@@ -175,11 +177,18 @@ export default function App() {
           {/* AI Photo Analysis */}
           <FoodPhotoAnalyzer
             onResult={(result) => {
-              setName(result.name);
-              setCalories(String(result.calories));
-              setProtein(String(result.protein));
-              setCarbs(String(result.carbs));
-              setFat(String(result.fat));
+              setEntries(prev => [
+                ...prev,
+                {
+                  id: crypto.randomUUID(),
+                  name: result.name,
+                  calories: result.calories,
+                  protein: result.protein,
+                  carbs: result.carbs,
+                  fat: result.fat,
+                  ingredients: result.ingredients,
+                },
+              ]);
             }}
           />
 
@@ -296,47 +305,86 @@ export default function App() {
           ) : (
             <ul className="space-y-3">
               {entries.map(entry => (
-                <li
-                  key={entry.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors"
-                >
-                  <div>
-                    <div
-                      className="text-[16px] text-[#1A1A1A] font-medium"
-                      style={{ fontFamily: 'DM Sans' }}
-                    >
-                      {entry.name}
-                    </div>
-                    <div
-                      className="text-[13px] text-gray-400 mt-0.5"
-                      style={{ fontFamily: 'DM Sans' }}
-                    >
-                      P: {entry.protein}g · C: {entry.carbs}g · F: {entry.fat}g
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span
-                      className="text-[18px] text-[#1A1A1A] font-medium"
-                      style={{ fontFamily: 'DM Sans' }}
-                    >
-                      {entry.calories}
-                      <span className="text-[13px] text-gray-400 ml-1">kcal</span>
-                    </span>
-                    <button
-                      onClick={() => removeEntry(entry.id)}
-                      className="text-gray-300 hover:text-red-500 transition-colors"
-                      aria-label={`Remove ${entry.name}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </li>
+                <FoodLogEntry key={entry.id} entry={entry} onRemove={() => removeEntry(entry.id)} />
               ))}
             </ul>
           )}
         </section>
       </main>
     </div>
+  );
+}
+
+function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasIngredients = entry.ingredients && entry.ingredients.length > 0;
+
+  return (
+    <li className="rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
+      <div className="flex items-center justify-between p-4">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          {hasIngredients && (
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="text-gray-400 hover:text-[#7C3AED] transition-colors shrink-0"
+              aria-label={expanded ? 'Collapse ingredients' : 'Expand ingredients'}
+            >
+              {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+          )}
+          <div className="min-w-0">
+            <div
+              className="text-[16px] text-[#1A1A1A] font-medium truncate"
+              style={{ fontFamily: 'DM Sans' }}
+            >
+              {entry.name}
+            </div>
+            <div
+              className="text-[13px] text-gray-400 mt-0.5"
+              style={{ fontFamily: 'DM Sans' }}
+            >
+              P: {entry.protein}g · C: {entry.carbs}g · F: {entry.fat}g
+              {hasIngredients && (
+                <span className="ml-2 text-gray-300">· {entry.ingredients!.length} items</span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 shrink-0">
+          <span
+            className="text-[18px] text-[#1A1A1A] font-medium"
+            style={{ fontFamily: 'DM Sans' }}
+          >
+            {entry.calories}
+            <span className="text-[13px] text-gray-400 ml-1">kcal</span>
+          </span>
+          <button
+            onClick={onRemove}
+            className="text-gray-300 hover:text-red-500 transition-colors"
+            aria-label={`Remove ${entry.name}`}
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded ingredients */}
+      {expanded && hasIngredients && (
+        <div className="px-4 pb-4 pt-0">
+          <div className="bg-[#FAF9F6] rounded-lg p-3 space-y-2">
+            {entry.ingredients!.map((ing, i) => (
+              <div key={i} className="flex items-center justify-between text-[13px]" style={{ fontFamily: 'DM Sans' }}>
+                <span className="text-gray-600">{ing.name}</span>
+                <div className="flex items-center gap-3 text-gray-400">
+                  <span>{ing.quantity} {ing.unit}</span>
+                  <span className="w-14 text-right">{ing.calories} kcal</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </li>
   );
 }
 
