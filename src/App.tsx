@@ -30,7 +30,8 @@ export default function App() {
   const totalCarbs = entries.reduce((sum, e) => sum + e.carbs, 0);
   const totalFat = entries.reduce((sum, e) => sum + e.fat, 0);
   const progress = Math.min((totalCalories / goal) * 100, 100);
-  const remaining = Math.max(goal - totalCalories, 0);
+  const overBudget = totalCalories > goal;
+  const remaining = goal - totalCalories;
 
   function addEntry(e: React.FormEvent) {
     e.preventDefault();
@@ -129,7 +130,7 @@ export default function App() {
           {/* Progress bar */}
           <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-4">
             <div
-              className="h-full rounded-full bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] transition-all duration-500"
+              className={`h-full rounded-full transition-all duration-500 ${overBudget ? 'bg-[#DC2626]' : 'bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6]'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -137,7 +138,7 @@ export default function App() {
           <div className="flex items-baseline justify-between">
             <div>
               <span
-                className="text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] text-[#1A1A1A]"
+                className={`text-[32px] md:text-[40px] leading-[1.1] tracking-[-0.02em] ${overBudget ? 'text-[#DC2626]' : 'text-[#1A1A1A]'}`}
                 style={{ fontFamily: 'DM Serif Display' }}
               >
                 {totalCalories}
@@ -150,10 +151,10 @@ export default function App() {
               </span>
             </div>
             <span
-              className="text-[16px] text-gray-500"
+              className={`text-[16px] ${overBudget ? 'text-[#DC2626] font-medium' : 'text-gray-500'}`}
               style={{ fontFamily: 'DM Sans' }}
             >
-              {remaining} remaining
+              {overBudget && '😞 '}{remaining} {overBudget ? 'over' : 'remaining'}
             </span>
           </div>
 
