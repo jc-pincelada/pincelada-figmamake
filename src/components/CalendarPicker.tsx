@@ -75,14 +75,14 @@ export default function CalendarPicker({
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => setViewDate(addMonths(viewDate, -1))}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors"
             aria-label="Previous month"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => setView('month')}
-            className="text-[16px] font-medium text-[#1A1A1A] hover:text-[#5D5278] transition-colors"
+            className="text-[16px] font-medium text-[#1A1A1A] hover:text-[#7C3AED] transition-colors"
             style={{ fontFamily: 'DM Sans' }}
           >
             {format(viewDate, 'MMMM yyyy')}
@@ -93,7 +93,7 @@ export default function CalendarPicker({
               if (startOfMonth(next) <= today) setViewDate(next);
             }}
             disabled={isSameMonth(viewDate, today)}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next month"
           >
             <ChevronRight className="w-5 h-5" />
@@ -139,8 +139,8 @@ export default function CalendarPicker({
                   className={`
                     relative flex flex-col items-center justify-center py-2 rounded-lg text-[14px] transition-colors
                     ${!inMonth ? 'text-gray-300' : ''}
-                    ${inMonth && !isSelected && !isFuture ? 'text-[#1A1A1A] hover:bg-[#F2D8B0]' : ''}
-                    ${isSelected ? 'bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white' : ''}
+                    ${inMonth && !isSelected && !isFuture ? 'text-[#1A1A1A] hover:bg-[#FAF9F6]' : ''}
+                    ${isSelected ? 'bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white' : ''}
                     ${isFuture ? 'text-gray-200 cursor-not-allowed' : ''}
                     ${isToday && !isSelected ? 'font-bold' : ''}
                   `}
@@ -149,7 +149,7 @@ export default function CalendarPicker({
                   <span>{format(d, 'd')}</span>
                   {/* Data indicator dot */}
                   {hasData && !isSelected && (
-                    <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${over ? 'bg-[#DC2626]' : 'bg-[#5D5278]'}`} />
+                    <span className={`absolute bottom-1 w-1.5 h-1.5 rounded-full ${over ? 'bg-[#DC2626]' : 'bg-[#7C3AED]'}`} />
                   )}
                   {hasData && isSelected && (
                     <span className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-white" />
@@ -173,14 +173,14 @@ export default function CalendarPicker({
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => setViewDate(addYears(viewDate, -1))}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors"
             aria-label="Previous year"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => setView('year')}
-            className="text-[16px] font-medium text-[#1A1A1A] hover:text-[#5D5278] transition-colors"
+            className="text-[16px] font-medium text-[#1A1A1A] hover:text-[#7C3AED] transition-colors"
             style={{ fontFamily: 'DM Sans' }}
           >
             {year}
@@ -191,7 +191,7 @@ export default function CalendarPicker({
               if (startOfYear(next) <= today) setViewDate(next);
             }}
             disabled={year >= today.getFullYear()}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next year"
           >
             <ChevronRight className="w-5 h-5" />
@@ -217,15 +217,15 @@ export default function CalendarPicker({
                 disabled={isFuture}
                 className={`
                   relative py-3 px-2 rounded-lg text-[14px] transition-colors
-                  ${isCurrentMonth ? 'bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white' : ''}
-                  ${!isCurrentMonth && !isFuture ? 'text-[#1A1A1A] hover:bg-[#F2D8B0]' : ''}
+                  ${isCurrentMonth ? 'bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white' : ''}
+                  ${!isCurrentMonth && !isFuture ? 'text-[#1A1A1A] hover:bg-[#FAF9F6]' : ''}
                   ${isFuture ? 'text-gray-200 cursor-not-allowed' : ''}
                 `}
                 style={{ fontFamily: 'DM Sans' }}
               >
                 {format(m, 'MMM')}
                 {hasData && !isCurrentMonth && (
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#5D5278]" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
                 )}
               </button>
             );
@@ -245,7 +245,7 @@ export default function CalendarPicker({
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={() => setViewDate(addYears(viewDate, -10))}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors"
             aria-label="Previous decade"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -263,7 +263,7 @@ export default function CalendarPicker({
               }
             }}
             disabled={currentDecade + 10 > today.getFullYear()}
-            className="p-1 text-gray-400 hover:text-[#5D5278] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
             aria-label="Next decade"
           >
             <ChevronRight className="w-5 h-5" />
@@ -291,15 +291,15 @@ export default function CalendarPicker({
                 className={`
                   relative py-3 px-2 rounded-lg text-[14px] transition-colors
                   ${!inDecade ? 'text-gray-300' : ''}
-                  ${isSelected && inDecade ? 'bg-gradient-to-br from-[#5D5278] via-[#A8978E] to-[#C8AAAA] text-white' : ''}
-                  ${!isSelected && inDecade && !isFuture ? 'text-[#1A1A1A] hover:bg-[#F2D8B0]' : ''}
+                  ${isSelected && inDecade ? 'bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white' : ''}
+                  ${!isSelected && inDecade && !isFuture ? 'text-[#1A1A1A] hover:bg-[#FAF9F6]' : ''}
                   ${isFuture ? 'text-gray-200 cursor-not-allowed' : ''}
                 `}
                 style={{ fontFamily: 'DM Sans' }}
               >
                 {y}
                 {hasData && !isSelected && inDecade && (
-                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#5D5278]" />
+                  <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
                 )}
               </button>
             );
@@ -338,7 +338,7 @@ export default function CalendarPicker({
         <div className="mt-3 text-center">
           <button
             onClick={() => { onSelectDate(todayStr); onClose(); }}
-            className="text-[13px] text-[#5D5278] hover:underline"
+            className="text-[13px] text-[#7C3AED] hover:underline"
             style={{ fontFamily: 'DM Sans' }}
           >
             Go to today
