@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp } from 'lucide-react';
 import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
 import type { Ingredient } from './components/FoodPhotoAnalyzer';
@@ -14,16 +14,47 @@ interface FoodEntry {
 }
 
 const DEFAULT_GOAL = 2000;
+const STORAGE_KEY = 'calorie_tracker_data';
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadToday(): { entries: FoodEntry[]; goal: number } {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { entries: [], goal: DEFAULT_GOAL };
+    const data = JSON.parse(raw);
+    if (data.date === getTodayKey()) {
+      return { entries: data.entries || [], goal: data.goal || DEFAULT_GOAL };
+    }
+    return { entries: [], goal: data.goal || DEFAULT_GOAL };
+  } catch {
+    return { entries: [], goal: DEFAULT_GOAL };
+  }
+}
 
 export default function App() {
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [entries, setEntries] = useState<FoodEntry[]>(() => loadToday().entries);
   const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
-  const [goal, setGoal] = useState(DEFAULT_GOAL);
+  const [goal, setGoal] = useState(() => loadToday().goal);
   const [editingGoal, setEditingGoal] = useState(false);
+
+  const persist = useCallback((newEntries: FoodEntry[], newGoal: number) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      date: getTodayKey(),
+      entries: newEntries,
+      goal: newGoal,
+    }));
+  }, []);
+
+  useEffect(() => {
+    persist(entries, goal);
+  }, [entries, goal, persist]);
 
   const totalCalories = entries.reduce((sum, e) => sum + e.calories, 0);
   const totalProtein = entries.reduce((sum, e) => sum + e.protein, 0);
