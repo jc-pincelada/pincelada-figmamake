@@ -3,6 +3,7 @@ import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp, Che
 import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
 import type { Ingredient } from './components/FoodPhotoAnalyzer';
 import CalendarPicker from './components/CalendarPicker';
+import HistoryChart from './components/HistoryChart';
 
 interface FoodEntry {
   id: string;
@@ -451,6 +452,9 @@ export default function App() {
             </ul>
           )}
         </section>
+
+        {/* History Chart */}
+        <HistoryChart days={allData.days} goal={goal} />
       </main>
     </div>
   );
