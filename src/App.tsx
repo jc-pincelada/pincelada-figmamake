@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, Flame, Apple, Beef, Droplets, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import FoodPhotoAnalyzer from './components/FoodPhotoAnalyzer';
 import type { Ingredient } from './components/FoodPhotoAnalyzer';
 
@@ -13,6 +13,16 @@ interface FoodEntry {
   ingredients?: Ingredient[];
 }
 
+interface DayData {
+  entries: FoodEntry[];
+  goal: number;
+}
+
+interface AllData {
+  days: Record<string, DayData>;
+  goal: number;
+}
+
 const DEFAULT_GOAL = 2000;
 const STORAGE_KEY = 'calorie_tracker_data';
 
@@ -20,41 +30,97 @@ function getTodayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function loadToday(): { entries: FoodEntry[]; goal: number } {
+function shiftDate(dateStr: string, days: number): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDateLabel(dateStr: string): string {
+  const today = getTodayKey();
+  const yesterday = shiftDate(today, -1);
+  if (dateStr === today) return 'Today';
+  if (dateStr === yesterday) return 'Yesterday';
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function formatFullDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function loadAll(): AllData {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { entries: [], goal: DEFAULT_GOAL };
+    if (!raw) return { days: {}, goal: DEFAULT_GOAL };
     const data = JSON.parse(raw);
-    if (data.date === getTodayKey()) {
-      return { entries: data.entries || [], goal: data.goal || DEFAULT_GOAL };
+    // Migrate from old single-day format
+    if (data.date && data.entries) {
+      const migrated: AllData = {
+        days: { [data.date]: { entries: data.entries, goal: data.goal || DEFAULT_GOAL } },
+        goal: data.goal || DEFAULT_GOAL,
+      };
+      return migrated;
     }
-    return { entries: [], goal: data.goal || DEFAULT_GOAL };
+    return { days: data.days || {}, goal: data.goal || DEFAULT_GOAL };
   } catch {
-    return { entries: [], goal: DEFAULT_GOAL };
+    return { days: {}, goal: DEFAULT_GOAL };
   }
 }
 
+function loadDay(allData: AllData, dateKey: string): DayData {
+  return allData.days[dateKey] || { entries: [], goal: allData.goal };
+}
+
+function getSortedDates(allData: AllData): string[] {
+  return Object.keys(allData.days)
+    .filter(k => allData.days[k].entries.length > 0)
+    .sort()
+    .reverse();
+}
+
 export default function App() {
-  const [entries, setEntries] = useState<FoodEntry[]>(() => loadToday().entries);
+  const [allData, setAllData] = useState<AllData>(loadAll);
+  const [selectedDate, setSelectedDate] = useState(getTodayKey());
   const [name, setName] = useState('');
   const [calories, setCalories] = useState('');
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
-  const [goal, setGoal] = useState(() => loadToday().goal);
   const [editingGoal, setEditingGoal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const persist = useCallback((newEntries: FoodEntry[], newGoal: number) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      date: getTodayKey(),
-      entries: newEntries,
-      goal: newGoal,
-    }));
+  const isToday = selectedDate === getTodayKey();
+  const dayData = loadDay(allData, selectedDate);
+  const entries = dayData.entries;
+  const goal = allData.goal;
+
+  const persist = useCallback((data: AllData) => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, []);
 
   useEffect(() => {
-    persist(entries, goal);
-  }, [entries, goal, persist]);
+    persist(allData);
+  }, [allData, persist]);
+
+  function setEntries(updater: FoodEntry[] | ((prev: FoodEntry[]) => FoodEntry[])) {
+    setAllData(prev => {
+      const currentEntries = prev.days[selectedDate]?.entries || [];
+      const newEntries = typeof updater === 'function' ? updater(currentEntries) : updater;
+      return {
+        ...prev,
+        days: {
+          ...prev.days,
+          [selectedDate]: { entries: newEntries, goal: prev.goal },
+        },
+      };
+    });
+  }
+
+  function setGoal(newGoal: number) {
+    setAllData(prev => ({ ...prev, goal: newGoal }));
+  }
 
   const totalCalories = entries.reduce((sum, e) => sum + e.calories, 0);
   const totalProtein = entries.reduce((sum, e) => sum + e.protein, 0);
@@ -90,35 +156,120 @@ export default function App() {
     setEntries(prev => prev.filter(e => e.id !== id));
   }
 
-  const today = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const historyDates = getSortedDates(allData);
 
   return (
     <div className="min-h-screen bg-[#FAF9F6]">
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-[700px] mx-auto px-6 md:px-12 py-6 flex items-center justify-between">
-          <div>
+        <div className="max-w-[700px] mx-auto px-6 md:px-12 py-6">
+          <div className="flex items-center justify-between">
             <h1
               className="text-[28px] md:text-[36px] leading-[1.1] tracking-[-0.02em] text-[#1A1A1A]"
               style={{ fontFamily: 'DM Serif Display' }}
             >
               Calorie Tracker
             </h1>
-            <p
-              className="text-[14px] text-gray-500 mt-1"
-              style={{ fontFamily: 'DM Sans' }}
-            >
-              {today}
-            </p>
+            <Flame className="w-8 h-8 text-[#7C3AED]" />
           </div>
-          <Flame className="w-8 h-8 text-[#7C3AED]" />
+
+          {/* Date navigation */}
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setSelectedDate(shiftDate(selectedDate, -1))}
+                className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors"
+                aria-label="Previous day"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span
+                className="text-[14px] text-[#1A1A1A] font-medium min-w-[180px] text-center"
+                style={{ fontFamily: 'DM Sans' }}
+              >
+                {formatFullDate(selectedDate)}
+              </span>
+              <button
+                onClick={() => {
+                  const next = shiftDate(selectedDate, 1);
+                  if (next <= getTodayKey()) setSelectedDate(next);
+                }}
+                disabled={isToday}
+                className="p-1 text-gray-400 hover:text-[#7C3AED] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Next day"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+              {!isToday && (
+                <button
+                  onClick={() => setSelectedDate(getTodayKey())}
+                  className="ml-1 text-[12px] text-[#7C3AED] hover:underline"
+                  style={{ fontFamily: 'DM Sans' }}
+                >
+                  Back to today
+                </button>
+              )}
+            </div>
+            {historyDates.length > 0 && (
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="flex items-center gap-1 text-[12px] text-gray-400 hover:text-[#7C3AED] transition-colors"
+                style={{ fontFamily: 'DM Sans' }}
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                History
+              </button>
+            )}
+          </div>
         </div>
       </header>
+
+      {/* History dropdown */}
+      {showHistory && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-[700px] mx-auto px-6 md:px-12 py-4">
+            <div
+              className="text-[11px] uppercase tracking-[0.15em] text-gray-500 mb-3"
+              style={{ fontFamily: 'DM Sans' }}
+            >
+              Previous Days
+            </div>
+            {historyDates.length === 0 ? (
+              <p className="text-[14px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
+                No history yet.
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {historyDates.map(dateKey => {
+                  const day = allData.days[dateKey];
+                  const dayCals = day.entries.reduce((s, e) => s + e.calories, 0);
+                  const isSelected = dateKey === selectedDate;
+                  const over = dayCals > allData.goal;
+                  return (
+                    <button
+                      key={dateKey}
+                      onClick={() => { setSelectedDate(dateKey); setShowHistory(false); }}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left ${isSelected ? 'bg-[#FAF9F6] border border-[#7C3AED]/20' : 'hover:bg-[#FAF9F6]'}`}
+                    >
+                      <div>
+                        <div className="text-[14px] text-[#1A1A1A] font-medium" style={{ fontFamily: 'DM Sans' }}>
+                          {formatDateLabel(dateKey)}
+                        </div>
+                        <div className="text-[12px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
+                          {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'}
+                        </div>
+                      </div>
+                      <div className={`text-[16px] font-medium ${over ? 'text-[#DC2626]' : 'text-[#1A1A1A]'}`} style={{ fontFamily: 'DM Sans' }}>
+                        {dayCals} <span className="text-[12px] text-gray-400 font-normal">kcal</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <main className="max-w-[700px] mx-auto px-6 md:px-12 py-8 space-y-8">
         {/* Daily Progress */}
@@ -197,8 +348,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* Add Food Form */}
-        <section className="bg-white rounded-lg p-6 md:p-8 border border-gray-200">
+        {/* Add Food Form — only for today */}
+        {isToday && <section className="bg-white rounded-lg p-6 md:p-8 border border-gray-200">
           <div
             className="text-[11px] uppercase tracking-[0.15em] text-gray-500 mb-4"
             style={{ fontFamily: 'DM Sans' }}
@@ -316,7 +467,7 @@ export default function App() {
               Add Entry
             </button>
           </form>
-        </section>
+        </section>}
 
         {/* Food Log */}
         <section className="bg-white rounded-lg p-6 md:p-8 border border-gray-200">
@@ -324,7 +475,7 @@ export default function App() {
             className="text-[11px] uppercase tracking-[0.15em] text-gray-500 mb-4"
             style={{ fontFamily: 'DM Sans' }}
           >
-            Today's Log ({entries.length} {entries.length === 1 ? 'entry' : 'entries'})
+            {formatDateLabel(selectedDate)}'s Log ({entries.length} {entries.length === 1 ? 'entry' : 'entries'})
           </div>
 
           {entries.length === 0 ? (
@@ -337,7 +488,7 @@ export default function App() {
           ) : (
             <ul className="space-y-3">
               {entries.map(entry => (
-                <FoodLogEntry key={entry.id} entry={entry} onRemove={() => removeEntry(entry.id)} />
+                <FoodLogEntry key={entry.id} entry={entry} onRemove={isToday ? () => removeEntry(entry.id) : undefined} />
               ))}
             </ul>
           )}
@@ -347,7 +498,7 @@ export default function App() {
   );
 }
 
-function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove: () => void }) {
+function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const hasIngredients = entry.ingredients && entry.ingredients.length > 0;
 
@@ -390,13 +541,15 @@ function FoodLogEntry({ entry, onRemove }: { entry: FoodEntry; onRemove: () => v
             {entry.calories}
             <span className="text-[13px] text-gray-400 ml-1">kcal</span>
           </span>
-          <button
-            onClick={onRemove}
-            className="text-gray-300 hover:text-red-500 transition-colors"
-            aria-label={`Remove ${entry.name}`}
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
+          {onRemove && (
+            <button
+              onClick={onRemove}
+              className="text-gray-300 hover:text-red-500 transition-colors"
+              aria-label={`Remove ${entry.name}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
