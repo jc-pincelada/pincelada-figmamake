@@ -295,7 +295,7 @@ export default function App() {
               className={`text-[16px] ${overBudget ? 'text-[#DC2626] font-medium' : 'text-gray-500'}`}
               style={{ fontFamily: 'DM Sans' }}
             >
-              {overBudget && '😞 '}{remaining} {overBudget ? 'over' : 'remaining'}
+              {overBudget && '🐷 '}{remaining} {overBudget ? 'over' : 'remaining'}
             </span>
           </div>
 
