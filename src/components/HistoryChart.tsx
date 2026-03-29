@@ -63,7 +63,7 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
     const shouldAggregate = range === '6m' || range === '1y';
 
     if (shouldAggregate) {
-      const weekMap = new Map<string, { calories: number; protein: number; carbs: number; fat: number; count: number; hasData: boolean }>();
+      const weekMap = new Map<string, { calories: number; protein: number; carbs: number; fat: number; count: number; dataCount: number; hasData: boolean }>();
 
       for (const d of allDays) {
         // Group by week start (Monday)
@@ -79,13 +79,16 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
         const f = day ? day.entries.reduce((s, e) => s + e.fat, 0) : 0;
         const hasEntries = day ? day.entries.length > 0 : false;
 
-        const existing = weekMap.get(weekKey) || { calories: 0, protein: 0, carbs: 0, fat: 0, count: 0, hasData: false };
+        const existing = weekMap.get(weekKey) || { calories: 0, protein: 0, carbs: 0, fat: 0, count: 0, dataCount: 0, hasData: false };
         existing.calories += cals;
         existing.protein += p;
         existing.carbs += c;
         existing.fat += f;
         existing.count += 1;
-        if (hasEntries) existing.hasData = true;
+        if (hasEntries) {
+          existing.dataCount += 1;
+          existing.hasData = true;
+        }
         weekMap.set(weekKey, existing);
       }
 
@@ -94,14 +97,15 @@ export default function HistoryChart({ days, goal }: HistoryChartProps) {
       let dataCount = 0;
 
       for (const [key, val] of weekMap) {
-        const avgCals = Math.round(val.calories / val.count);
+        const divisor = val.dataCount || 1;
+        const avgCals = Math.round(val.calories / divisor);
         data.push({
           date: key,
           label: range === '1y' ? format(parseISO(key + '-01'), 'MMM') : formatLabel(key, range),
           calories: avgCals,
-          protein: Math.round(val.protein / val.count),
-          carbs: Math.round(val.carbs / val.count),
-          fat: Math.round(val.fat / val.count),
+          protein: Math.round(val.protein / divisor),
+          carbs: Math.round(val.carbs / divisor),
+          fat: Math.round(val.fat / divisor),
           hasData: val.hasData,
         });
         if (val.hasData) {
