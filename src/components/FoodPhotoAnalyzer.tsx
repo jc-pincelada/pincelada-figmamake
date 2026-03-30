@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Upload, Loader2, X, Check, Pencil } from 'lucide-react';
+import { Camera, Upload, Loader2, X, Check, Pencil, Trash2, Plus } from 'lucide-react';
 
 export interface Ingredient {
   name: string;
@@ -49,7 +49,7 @@ function sumIngredients(ingredients: Ingredient[]): { calories: number; protein:
   );
 }
 
-const PROMPT = `Analyze this food photo. Identify each visible ingredient/component separately and estimate its nutritional content.
+const PHOTO_PROMPT = `Analyze this food photo. Identify each visible ingredient/component separately and estimate its nutritional content.
 
 For the unit field, use "pc" (pieces) for items that are naturally counted: tortillas, tostadas, bread slices, eggs, tacos, empanadas, cookies, rolls, buns, patties, drumsticks, wings, etc. Use "g" (grams) for everything else: meats, rice, beans, vegetables, cheese, sauces, etc.
 
@@ -57,6 +57,50 @@ Respond ONLY with valid JSON in this exact format, no other text:
 {"name": "brief meal description", "ingredients": [{"name": "ingredient name", "quantity": 0, "unit": "g", "calories": 0, "protein": 0, "carbs": 0, "fat": 0}]}
 
 Calories in kcal, protein/carbs/fat in grams per ingredient. Be accurate with portion size estimates.`;
+
+function makeIngredientPrompt(name: string, quantity: number, unit: 'g' | 'pc'): string {
+  return `Estimate the nutritional content of: ${quantity} ${unit === 'pc' ? (quantity === 1 ? 'piece' : 'pieces') : 'grams'} of ${name}.
+
+Respond ONLY with valid JSON in this exact format, no other text:
+{"calories": 0, "protein": 0, "carbs": 0, "fat": 0}
+
+Calories in kcal, protein/carbs/fat in grams. Be as accurate as possible.`;
+}
+
+async function fetchIngredientMacros(
+  apiKey: string,
+  name: string,
+  quantity: number,
+  unit: 'g' | 'pc',
+): Promise<{ calories: number; protein: number; carbs: number; fat: number }> {
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 256,
+      messages: [
+        { role: 'user', content: makeIngredientPrompt(name, quantity, unit) },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => null);
+    throw new Error(errData?.error?.message || `API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data.content[0].text.trim();
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error('Could not parse AI response');
+  return JSON.parse(jsonMatch[0]);
+}
 
 export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('anthropic_api_key') || '');
@@ -68,6 +112,11 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [originalQuantities, setOriginalQuantities] = useState<number[]>([]);
   const [showReview, setShowReview] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newQty, setNewQty] = useState('');
+  const [newUnit, setNewUnit] = useState<'g' | 'pc'>('g');
+  const [addingIngredient, setAddingIngredient] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,6 +145,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
     setPreview(null);
     setError('');
     setShowReview(false);
+    setShowAddForm(false);
     setIngredients([]);
     setOriginalQuantities([]);
     setMealName('');
@@ -109,6 +159,42 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
         i === index ? scaleIngredient(ing, originalQuantities[i], newQty) : ing,
       ),
     );
+  }
+
+  function removeIngredient(index: number) {
+    setIngredients(prev => prev.filter((_, i) => i !== index));
+    setOriginalQuantities(prev => prev.filter((_, i) => i !== index));
+  }
+
+  async function addNewIngredient() {
+    if (!newName.trim() || !newQty || !apiKey) return;
+
+    const qty = Number(newQty);
+    if (isNaN(qty) || qty <= 0) return;
+
+    setAddingIngredient(true);
+    setError('');
+
+    try {
+      const macros = await fetchIngredientMacros(apiKey, newName.trim(), qty, newUnit);
+      const ing: Ingredient = {
+        name: newName.trim(),
+        quantity: qty,
+        unit: newUnit,
+        ...macros,
+      };
+      setIngredients(prev => [...prev, ing]);
+      setOriginalQuantities(prev => [...prev, qty]);
+      setNewName('');
+      setNewQty('');
+      setNewUnit('g');
+      setShowAddForm(false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to get nutritional info';
+      setError(message);
+    } finally {
+      setAddingIngredient(false);
+    }
   }
 
   function confirmIngredients() {
@@ -150,7 +236,7 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
                   type: 'image',
                   source: { type: 'base64', media_type: mediaType, data: base64Data },
                 },
-                { type: 'text', text: PROMPT },
+                { type: 'text', text: PHOTO_PROMPT },
               ],
             },
           ],
@@ -337,15 +423,119 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
               className="text-[11px] uppercase tracking-[0.15em] text-gray-500"
               style={{ fontFamily: 'DM Sans' }}
             >
-              Ingredients — adjust quantities if needed
+              Ingredients — edit, remove, or add
             </div>
             {ingredients.map((ing, i) => (
               <IngredientRow
-                key={i}
+                key={`${i}-${ing.name}`}
                 ingredient={ing}
                 onQuantityChange={(qty) => updateIngredientQty(i, qty)}
+                onRemove={() => removeIngredient(i)}
               />
             ))}
+
+            {/* Add ingredient */}
+            {showAddForm ? (
+              <div className="p-3 rounded-lg border-2 border-dashed border-[#7C3AED]/30 bg-[#FAF9F6] space-y-3">
+                <div>
+                  <label className="block text-[12px] text-gray-500 mb-1" style={{ fontFamily: 'DM Sans' }}>
+                    Ingredient name
+                  </label>
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    placeholder="e.g. Corn tortilla"
+                    className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors text-[14px]"
+                    style={{ fontFamily: 'DM Sans' }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="block text-[12px] text-gray-500 mb-1" style={{ fontFamily: 'DM Sans' }}>
+                      Quantity
+                    </label>
+                    <input
+                      type="number"
+                      value={newQty}
+                      onChange={e => setNewQty(e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      step={newUnit === 'pc' ? '1' : 'any'}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-[#7C3AED] focus:outline-none transition-colors text-[14px]"
+                      style={{ fontFamily: 'DM Sans' }}
+                    />
+                  </div>
+                  <div className="w-28">
+                    <label className="block text-[12px] text-gray-500 mb-1" style={{ fontFamily: 'DM Sans' }}>
+                      Unit
+                    </label>
+                    <div className="flex rounded-lg border-2 border-gray-200 overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => setNewUnit('g')}
+                        className={`flex-1 py-2 text-[13px] transition-colors ${
+                          newUnit === 'g'
+                            ? 'bg-[#7C3AED] text-white'
+                            : 'bg-white text-gray-500 hover:bg-gray-50'
+                        }`}
+                        style={{ fontFamily: 'DM Sans' }}
+                      >
+                        Grams
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setNewUnit('pc')}
+                        className={`flex-1 py-2 text-[13px] transition-colors ${
+                          newUnit === 'pc'
+                            ? 'bg-[#7C3AED] text-white'
+                            : 'bg-white text-gray-500 hover:bg-gray-50'
+                        }`}
+                        style={{ fontFamily: 'DM Sans' }}
+                      >
+                        Pieces
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={addNewIngredient}
+                    disabled={addingIngredient || !newName.trim() || !newQty}
+                    className="flex-1 px-4 py-2 bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white rounded-full text-[13px] hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    style={{ fontFamily: 'DM Sans' }}
+                  >
+                    {addingIngredient ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Looking up...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-3.5 h-3.5" />
+                        Add & get macros
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => { setShowAddForm(false); setNewName(''); setNewQty(''); setNewUnit('g'); }}
+                    className="px-4 py-2 border-2 border-gray-200 rounded-full text-[13px] text-gray-500 hover:border-gray-300 transition-colors"
+                    style={{ fontFamily: 'DM Sans' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="w-full flex items-center justify-center gap-1.5 p-3 rounded-lg border-2 border-dashed border-gray-200 text-[13px] text-gray-400 hover:border-[#7C3AED] hover:text-[#7C3AED] transition-colors"
+                style={{ fontFamily: 'DM Sans' }}
+              >
+                <Plus className="w-4 h-4" />
+                Add ingredient
+              </button>
+            )}
           </div>
 
           {/* Totals */}
@@ -366,7 +556,8 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
           {/* Confirm button */}
           <button
             onClick={confirmIngredients}
-            className="w-full px-8 py-3 bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+            disabled={ingredients.length === 0}
+            className="w-full px-8 py-3 bg-gradient-to-br from-[#7C3AED] via-[#6366F1] to-[#3B82F6] text-white rounded-full hover:opacity-90 transition-opacity flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ fontFamily: 'DM Sans' }}
           >
             <Check className="w-5 h-5" />
@@ -388,9 +579,11 @@ export default function FoodPhotoAnalyzer({ onResult }: FoodPhotoAnalyzerProps) 
 function IngredientRow({
   ingredient,
   onQuantityChange,
+  onRemove,
 }: {
   ingredient: Ingredient;
   onQuantityChange: (qty: number) => void;
+  onRemove: () => void;
 }) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(ingredient.quantity));
@@ -409,14 +602,20 @@ function IngredientRow({
   }
 
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
-      <div className="flex-1 min-w-0">
-        <span className="text-[15px] text-[#1A1A1A]" style={{ fontFamily: 'DM Sans' }}>
+    <div className="flex items-center justify-between p-3 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors group">
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <button
+          onClick={onRemove}
+          className="text-gray-200 hover:text-red-500 transition-colors shrink-0 opacity-0 group-hover:opacity-100"
+          aria-label={`Remove ${ingredient.name}`}
+        >
+          <Trash2 className="w-3.5 h-3.5" />
+        </button>
+        <span className="text-[15px] text-[#1A1A1A] truncate" style={{ fontFamily: 'DM Sans' }}>
           {ingredient.name}
         </span>
       </div>
       <div className="flex items-center gap-3 shrink-0">
-        {/* Editable quantity */}
         {editing ? (
           <div className="flex items-center gap-1">
             <input
@@ -438,7 +637,7 @@ function IngredientRow({
         ) : (
           <button
             onClick={startEdit}
-            className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors group"
+            className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors group/edit"
           >
             <span className="text-[14px] text-[#1A1A1A] font-medium" style={{ fontFamily: 'DM Sans' }}>
               {ingredient.quantity}
@@ -446,11 +645,10 @@ function IngredientRow({
             <span className="text-[13px] text-gray-400" style={{ fontFamily: 'DM Sans' }}>
               {ingredient.unit}
             </span>
-            <Pencil className="w-3 h-3 text-gray-300 group-hover:text-[#7C3AED] transition-colors" />
+            <Pencil className="w-3 h-3 text-gray-300 group-hover/edit:text-[#7C3AED] transition-colors" />
           </button>
         )}
 
-        {/* Per-ingredient calories */}
         <span className="text-[13px] text-gray-400 w-16 text-right" style={{ fontFamily: 'DM Sans' }}>
           {ingredient.calories} kcal
         </span>
